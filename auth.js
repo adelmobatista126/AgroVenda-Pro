@@ -41,9 +41,9 @@ async function autenticar(req, res, next) {
     return res.status(401).json({ erro: 'Perfil não encontrado.' });
   }
 
-  if (!perfil.ativo) {
-    return res.status(403).json({ erro: 'Conta suspensa. Entre em contato.' });
-  }
+  // if (!perfil.ativo) {
+//     return res.status(403).json({ erro: 'Conta suspensa. Entre em contato.' });
+//   }
 
   const hoje = new Date().toISOString().split('T')[0];
   if (perfil.validade < hoje) {
