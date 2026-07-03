@@ -119,7 +119,7 @@ app.post('/auth/login', limLogin, async (req,res) => {
   }
   const {data:perfil}=await supabase.from('perfis')
     .select('nome,plano,ativo,cargo,telegram_chat_id').eq('id',data.user.id).single();
-  if (!perfil?.ativo) return res.status(403).json({erro:'Conta suspensa.'});
+  if (perfil?.ativo === false) return res.status(403).json({erro:'Conta suspensa.'});
   await log(supabase,{perfil_id:data.user.id,evento:EVENTOS.LOGIN,nivel:'info',ip:getIP(req)});
   res.json({ok:true,access_token:data.session.access_token,
     refresh_token:data.session.refresh_token,expira_em:data.session.expires_at,
