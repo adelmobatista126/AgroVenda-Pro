@@ -40,7 +40,8 @@ async function autenticar(req, res, next) {
   if (errPerfil || !perfil) {
     return res.status(401).json({ erro: 'Perfil não encontrado.' });
   }
-
+console.log("=== PERFIL ===");
+console.log(JSON.stringify(perfil, null, 2));
   if (!perfil.ativo) {
   return res.status(403).json({ erro: 'Conta suspensa. Entre em contato.' });
 }
