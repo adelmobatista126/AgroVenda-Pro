@@ -50,11 +50,7 @@ const limChat   = rateLimit({windowMs:60000,max:15,message:{erro:'Limite chat/mi
 const limAgente = rateLimit({windowMs:3600000,max:5,message:{erro:'Limite briefings/hora.'}});
 
 app.use(express.json({limit:'50kb'}));
-const origens = [process.env.FRONTEND_URL,'http://localhost:3001','http://localhost:5173'].filter(Boolean);
-app.use(cors({
-  origin:(o,cb)=>(!o||origens.includes(o))?cb(null,true):cb(new Error('Origem não permitida')),
-  credentials:true
-}));
+app.use(cors({ origin: true, credentials: true }));
 app.use(limGlobal);
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
@@ -119,7 +115,7 @@ app.post('/auth/login', limLogin, async (req,res) => {
   }
   const {data:perfil}=await supabase.from('perfis')
     .select('nome,plano,ativo,cargo,telegram_chat_id').eq('id',data.user.id).single();
-  if (perfil?.ativo === false) return res.status(403).json({erro:'Conta suspensa.'});
+  if (!perfil?.ativo) return res.status(403).json({erro:'Conta suspensa.'});
   await log(supabase,{perfil_id:data.user.id,evento:EVENTOS.LOGIN,nivel:'info',ip:getIP(req)});
   res.json({ok:true,access_token:data.session.access_token,
     refresh_token:data.session.refresh_token,expira_em:data.session.expires_at,
