@@ -32,7 +32,7 @@ const YAHOO_FACTOR = {
 async function logColeta(supabase, { fonte_codigo, cultura, data_ref, registros, sucesso, erro, duracao_ms }) {
   await supabase.from('log_coletas').insert({
     fonte_codigo, cultura, data_ref, registros: registros||0, sucesso, erro: erro||null, duracao_ms
-  }).catch(() => {});
+  });
 
   // Atualizar status da fonte
   await supabase.from('fontes_dados')
@@ -41,7 +41,7 @@ async function logColeta(supabase, { fonte_codigo, cultura, data_ref, registros,
       ultimo_erro: sucesso ? null : erro,
       total_coletas: supabase.rpc ? undefined : undefined, // incrementado via SQL
     })
-    .eq('codigo', fonte_codigo).catch(() => {});
+    .eq('codigo', fonte_codigo);
 }
 
 // ── 1. CEPEA/ESALQ — preços ao produtor (fonte primária) ────
@@ -280,8 +280,8 @@ async function coletarEPersistir(supabase, cultura) {
       preco_usd: yahoo?.preco_usd || null,
       ...indicadores,
       ...clima,
-    }, { onConflict: 'cultura,data,fonte', ignoreDuplicates: false })
-    .catch(e => console.warn(`Upsert CEPEA ${cultura}:`, e.message));
+    }, { onConflict: 'cultura,data,fonte', ignoreDuplicates: false });
+    // catch handled above;
   }
 
   // Também salvar registro Yahoo se CEPEA falhou (fallback)
@@ -295,7 +295,7 @@ async function coletarEPersistir(supabase, cultura) {
       ...indicadores, ...clima,
       coletado_em: new Date().toISOString(),
     }, { onConflict: 'cultura,data,fonte', ignoreDuplicates: false })
-    .catch(e => console.warn(`Upsert Yahoo ${cultura}:`, e.message));
+    // .catch(e => console.warn(`Upsert Yahoo ${cultura}:`, e.message)); // error handled silently
   }
 
   return {
@@ -369,7 +369,7 @@ async function gerarESalvarSinal(supabase, cultura, scoreResult, probabilidades,
         cultura,
         preco_no_momento: dadosMercado.preco_brl,
         resultado_principal: 'pendente',
-      }, { onConflict: 'sinal_id,cultura' }).catch(() => {});
+      }, { onConflict: 'sinal_id,cultura' });
     }
 
     return sinal;
