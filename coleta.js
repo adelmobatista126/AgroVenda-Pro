@@ -93,8 +93,18 @@ async function coletarDolarBCB(supabase) {
       const mm = String(dt.getMonth()+1).padStart(2,'0');
       const dd = String(dt.getDate()).padStart(2,'0');
       const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@d)?@d='${mm}-${dd}-${dt.getFullYear()}'&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao`;
-      const res = await fetch(url, { timeout: 10000 });
-      const data = await res.json();
+      const res = await fetch if (!res.ok) {
+    throw new Error(`Yahoo HTTP ${res.status}`);
+} (url, { timeout: 10000 });
+      const texto = await res.text();
+
+let data;
+
+try {
+    data = JSON.parse(texto);
+} catch {
+    throw new Error("Yahoo retornou resposta inválida");
+}
       if (data?.value?.length > 0) {
         const c = data.value[data.value.length - 1];
         const ptax = parseFloat(((c.cotacaoCompra + c.cotacaoVenda) / 2).toFixed(4));
