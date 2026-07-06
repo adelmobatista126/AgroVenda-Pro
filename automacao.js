@@ -267,7 +267,7 @@ function iniciarAutomacao(supabase, anthropicKey) {
   // Inicialização progressiva (sem bloquear o startup)
   setTimeout(() => processarFila(supabase), 5000);
   setTimeout(() => verificarAlertas(supabase), 15000);
-  setTimeout(() => cicloPrincipal(supabase, anthropicKey), 30000);
+  setTimeout(() => cicloPrincipal(supabase, anthropicKey).catch(e=>console.warn('ciclo:',e.message)), 60000);
   setTimeout(() => atualizarTodosEstados(supabase), 120000);
   setTimeout(() => backfillHistorico(supabase, 1000), 180000); // migrar dados existentes
 }
