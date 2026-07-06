@@ -91,13 +91,13 @@ async function gerarOportunidades(supabase, precos) {
   await supabase.from('oportunidades')
     .update({ ativa: false })
     .lt('validade', agora.toISOString())
-    .catch(e => console.warn('Expirar oportunidades:', e.message));
+    // .catch(e => console.warn('Expirar oportunidades:', e.message)); // error handled silently
 
   // Inserir novas oportunidades
   if (oportunidades.length > 0) {
     await supabase.from('oportunidades')
-      .insert(oportunidades)
-      .catch(e => console.warn('Inserir oportunidades:', e.message));
+      .insert(oportunidades);
+      // catch handled above;
     console.log(`🎯 Radar: ${oportunidades.length} oportunidades geradas`);
   }
 
