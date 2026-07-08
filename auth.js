@@ -66,7 +66,7 @@ async function autenticar(req, res, next) {
   const ehLivre = rotasLivres.some(r => (req.path||'').startsWith(r));
   if (!ehLivre) {
     try {
-      const sbCheck = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+      const sbCheck = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
       const { data: cs } = await sbCheck.rpc('verificar_consentimento', { p_user_id: user.id });
       if (cs && !cs.completo) {
         return res.status(403).json({
