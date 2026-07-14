@@ -295,7 +295,7 @@ async function coletarEPersistir(supabase, cultura) {
       ...indicadores, ...clima,
       coletado_em: new Date().toISOString(),
     }, { onConflict: 'cultura,data,fonte', ignoreDuplicates: false })
-    // .catch(e => console.warn(`Upsert Yahoo ${cultura}:`, e.message)); // error handled silently
+    // .then(null, e => console.warn(`Upsert Yahoo ${cultura}:`, e.message)); // error handled silently
   }
 
   return {

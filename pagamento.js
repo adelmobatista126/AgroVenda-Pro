@@ -102,7 +102,7 @@ async function processarAsaas(supabase, body, headers = {}) {
   if (!tokenRecebido || tokenRecebido !== process.env.ASAAS_WEBHOOK_TOKEN) {
     console.error('Asaas webhook token inválido');
     await log(supabase, { evento: 'webhook_asaas_invalido', nivel: 'critico',
-      detalhe: { token_presente: !!tokenRecebido } }).catch(() => {});
+      detalhe: { token_presente: !!tokenRecebido } }).then(null, () => {});
     return { ok: false, msg: 'Token Asaas inválido — possível fraude' };
   }
 

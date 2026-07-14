@@ -241,7 +241,7 @@ function iniciarAutomacao(supabase, anthropicKey) {
 
   // AI Agent briefing — 8h Brasília (11h UTC)
   cron.schedule('0 11 * * *', async () => {
-    const precos = await buscarTodosPrecos(supabase).catch(()=>null);
+    const precos = await buscarTodosPrecos(supabase).then(null, ()=>null);
     if (precos) await dispararBriefingGeral(supabase, precos, anthropicKey);
   });
 
@@ -260,14 +260,14 @@ function iniciarAutomacao(supabase, anthropicKey) {
   // Anti-sleep Railway
   const URL = process.env.RAILWAY_URL;
   if (URL) {
-    cron.schedule('*/10 * * * *', () => fetch(`${URL}/`,{timeout:5000}).catch(()=>{}));
+    cron.schedule('*/10 * * * *', () => fetch(`${URL}/`,{timeout:5000}).then(null, ()=>{}));
     console.log(`🔔 Anti-sleep → ${URL}`);
   }
 
   // Inicialização progressiva (sem bloquear o startup)
   setTimeout(() => processarFila(supabase), 5000);
   setTimeout(() => verificarAlertas(supabase), 15000);
-  setTimeout(() => cicloPrincipal(supabase, anthropicKey).catch(e=>console.warn('ciclo:',e.message)), 60000);
+  setTimeout(() => cicloPrincipal(supabase, anthropicKey).then(null, e=>console.warn('ciclo:',e.message)), 60000);
   setTimeout(() => atualizarTodosEstados(supabase), 120000);
   setTimeout(() => backfillHistorico(supabase, 1000), 180000); // migrar dados existentes
 }

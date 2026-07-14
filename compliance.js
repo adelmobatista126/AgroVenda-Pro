@@ -174,7 +174,7 @@ async function registrarAceiteDisclaimer(supabase, log_id) {
   await supabase.from('ai_decision_logs').update({
     disclaimer_aceito: true,
     disclaimer_aceito_em: new Date().toISOString()
-  }).eq('id', log_id).catch(() => {});
+  }).eq('id', log_id).then(null, () => {});
 }
 
 // Registrar ação do usuário após recomendação
@@ -184,7 +184,7 @@ async function registrarAcaoUsuario(supabase, log_id, acao) {
   await supabase.from('ai_decision_logs').update({
     acao_usuario: acao,
     acao_registrada_em: new Date().toISOString()
-  }).eq('id', log_id).catch(() => {});
+  }).eq('id', log_id).then(null, () => {});
 }
 
 // ── Exportar dados do usuário (LGPD) ─────────────────────────
@@ -212,7 +212,7 @@ async function solicitarExclusaoConta(supabase, user_id, motivo) {
     titulo: 'Solicitação de exclusão de conta (LGPD)',
     descricao: motivo || 'Usuário solicitou exclusão de conta.',
     severidade: 'media', status: 'aberto'
-  }).catch(() => {});
+  }).then(null, () => {});
 
   return { prazo_exclusao: prazo.toISOString(), mensagem: 'Sua conta será excluída em até 30 dias. Você receberá confirmação por e-mail.' };
 }

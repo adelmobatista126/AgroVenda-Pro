@@ -129,7 +129,7 @@ app.post('/auth/renovar', async (req,res) => {
 });
 app.post('/auth/logout', autenticar, async (req,res) => {
   try { const cli=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY);
-    await cli.auth.admin.signOut((req.headers.authorization||'').slice(7)).catch(()=>{}); } catch(e){}
+    await cli.auth.admin.signOut((req.headers.authorization||'').slice(7)).then(null, ()=>{}); } catch(e){}
   await log(supabase,{perfil_id:req.perfil.id,evento:EVENTOS.LOGOUT,nivel:'info',ip:getIP(req)});
   res.json({ok:true});
 });
@@ -357,7 +357,7 @@ app.post('/score', autenticar, validarCultura, async (req,res) => {
   await supabase.from('tabela_scores').insert({
     perfil_id:req.perfil.id,cultura,score:score.score,fatores:score.itens,
     recomendacao:score.acao,preco_na_analise:p.brl,dolar_na_analise:precos.dolar,versao_algoritmo:'6.0'
-  }).catch(()=>{});
+  }).then(null, ()=>{});
   res.json({ok:true,...score,market_timing:mts,probabilidades:probs,precoAtual:p.brl,dolar:precos.dolar,fonte:p.fonte});
 });
 
@@ -394,7 +394,7 @@ app.post('/estrategia', autenticar, validarCultura, async (req,res) => {
     riscos:estrategia.riscos,oportunidades:estrategia.oportunidades,
     market_timing_score:estrategia.market_timing.score,confianca:estrategia.confianca,
     validade:new Date(Date.now()+24*3600*1000).toISOString()
-  }).catch(()=>{});
+  }).then(null, ()=>{});
   res.json({ok:true,...estrategia,probabilidades:probs,score_9var:score.score,preco_atual:p.brl});
 });
 
@@ -432,7 +432,7 @@ app.post('/safra/curva', autenticar, validarCultura, async (req,res) => {
     producao_prevista_sc:curva.producao_prevista_sc,
     custo_saca:curva.custo_saca,preco_meta,curva_venda:curva.curva,
     atualizado_em:new Date().toISOString()
-  },{onConflict:'perfil_id,cultura,safra'}).catch(()=>{});
+  },{onConflict:'perfil_id,cultura,safra'}).then(null, ()=>{});
   res.json({ok:true,...curva});
 });
 
@@ -596,7 +596,7 @@ app.post('/chat', autenticar, limChat, async (req,res) => {
       resposta:resposta.substring(0,4000),dados_utilizados:{dolar:precos.dolar},
       tokens_usados:(data.usage?.input_tokens||0)+(data.usage?.output_tokens||0),
       custo_usd:((data.usage?.input_tokens||0)*0.000003)+((data.usage?.output_tokens||0)*0.000015)
-    }).catch(()=>{});
+    }).then(null, ()=>{});
     await registrarUsoIA(req.perfil.id,data.usage?.input_tokens||200,data.usage?.output_tokens||300,supabase);
     res.json({ok:true,resposta,pergunta});
   } catch(e) { res.status(500).json({erro:e.message}); }
@@ -669,7 +669,7 @@ app.post('/analisar', autenticar, limIA, validarCultura, async (req,res) => {
       contexto_produtor:{objetivo:ctx.objetivoProd,risco:ctx.perfilRisco,divida:ctx.dividaAtiva},
       tokens_usados:(data.usage?.input_tokens||0)+(data.usage?.output_tokens||0),
       disclaimer_exibido:true
-    }).catch(()=>null);
+    }).then(null, ()=>null);
     const texto=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
     try {
       const m=texto.match(/\{[\s\S]*\}/);
@@ -685,7 +685,7 @@ app.post('/analisar', autenticar, limIA, validarCultura, async (req,res) => {
           detalhe:{cultura,score:score.score,mts:estrategia.market_timing.score}});
         // Onboarding passo 5: primeira análise recebida
         supabase.from('onboarding_progresso').update({passo_5_analise:true,atualizado_em:new Date().toISOString()})
-          .eq('perfil_id',req.perfil.id).catch(()=>{});
+          .eq('perfil_id',req.perfil.id).then(null, ()=>{});
       }
     } catch(e) {
       await log(supabase,{perfil_id:req.perfil.id,evento:'analise_parse_falhou',nivel:'aviso',
@@ -747,7 +747,7 @@ app.post('/simulacao', autenticar, validarCultura, async (req,res) => {
   const resultado=simular({quantidade,preco,custo,prazo_dias});
   if (!resultado.erro) await supabase.from('simulacoes').insert({
     perfil_id:req.perfil.id,cultura,quantidade_sacas:quantidade,preco_simulado:preco,custo_saca:custo,prazo_dias:prazo_dias||0
-  }).catch(()=>{});
+  }).then(null, ()=>{});
   res.json({ok:!resultado.erro,...resultado});
 });
 app.get('/radar', autenticar, async (req,res) => {
@@ -794,11 +794,11 @@ app.patch('/decisoes/:id/resultado', autenticar, async (req,res) => {
       cultura:dd.cultura,perfil_risco:pp?.perfil_risco,objetivo:pp?.objetivo,
       score_no_momento:dd.score_no_momento,decisao:req.body.decisao_original||'desconhecido',
       resultado,ganho_percentual:ganho_perdido&&preco_executado?(ganho_perdido/preco_executado*100):null,horizon_dias:30
-    }).catch(()=>{});
+    }).then(null, ()=>{});
   }
   await supabase.from('decisoes').update({resultado,preco_posterior,aprendizado,ganho_perdido}).eq('id',req.params.id);
   // Atualizar memória operacional após registrar resultado
-  atualizarMemoria(supabase, req.perfil.id).catch(()=>{});
+  atualizarMemoria(supabase, req.perfil.id).then(null, ()=>{});
   res.json({ok:true});
 });
 app.get('/decisoes', autenticar, async (req,res) => {
@@ -831,7 +831,7 @@ app.post('/alertas/configurar', autenticar, validarCultura, async (req,res) => {
     {onConflict:'perfil_id,cultura'});
   // Onboarding passo 6
   supabase.from('onboarding_progresso').update({passo_6_alerta:true,atualizado_em:new Date().toISOString()})
-    .eq('perfil_id',req.perfil.id).catch(()=>{});
+    .eq('perfil_id',req.perfil.id).then(null, ()=>{});
   res.json({ok:true,mensagem:`Alerta: ${cultura} @ R$ ${preco_alvo}`});
 });
 app.get('/alertas/meus', autenticar, async (req,res) => {
@@ -884,7 +884,7 @@ app.post('/telegram/cadastrar', autenticar, async (req,res) => {
   await log(supabase,{perfil_id:req.perfil.id,evento:EVENTOS.TELEGRAM_CONFIG,nivel:'info',detalhe:{ok:r.ok}});
   if (r.ok) {
     supabase.from('onboarding_progresso').update({passo_7_telegram:true,atualizado_em:new Date().toISOString()})
-      .eq('perfil_id',req.perfil.id).catch(()=>{});
+      .eq('perfil_id',req.perfil.id).then(null, ()=>{});
   }
   res.json({ok:true,telegram_confirmado:r.ok});
 });
@@ -896,7 +896,7 @@ app.post('/telegram/enviar', autenticar, async (req,res) => {
 });
 app.post('/whatsapp/webhook', async (req,res) => {
   if(req.query.hub_verify_token===process.env.WHATSAPP_VERIFY_TOKEN) return res.send(req.query.hub_challenge);
-  processarWhatsApp(supabase,req.body).catch(e=>console.error('WA:',e.message));
+  processarWhatsApp(supabase,req.body).then(null, e=>console.error('WA:',e.message));
   res.sendStatus(200);
 });
 app.post('/pagamentos/criar-link', autenticar, async (req,res) => {
@@ -1014,7 +1014,7 @@ app.post('/consentimento/todos', autenticar, async (req,res) => {
     const ip = getIP(req);
     const ua = req.headers['user-agent'];
     const resultados = await Promise.all(
-      (docs||[]).map(d => registrarConsentimento(supabase,req.perfil.id,d.tipo,d.versao,ip,ua).catch(()=>null))
+      (docs||[]).map(d => registrarConsentimento(supabase,req.perfil.id,d.tipo,d.versao,ip,ua).then(null, ()=>null))
     );
     res.json({ok:true, aceitos:resultados.filter(Boolean).length, total:docs?.length||0});
   } catch(e) { res.status(500).json({erro:e.message}); }
@@ -1262,18 +1262,18 @@ app.get('/admin/coleta/logs', autenticar, exigirAdmin, async (req,res) => {
 // Trigger coleta manual (admin)
 app.post('/admin/coleta/executar', autenticar, exigirAdmin, async (req,res) => {
   res.json({ok:true,msg:'Coleta iniciada em background'});
-  cicloPrincipal(supabase,process.env.ANTHROPIC_API_KEY).catch(e=>console.error('Coleta manual:',e.message));
+  cicloPrincipal(supabase,process.env.ANTHROPIC_API_KEY).then(null, e=>console.error('Coleta manual:',e.message));
 });
 // Trigger backtesting manual (admin)
 app.post('/admin/backtesting/avaliar', autenticar, exigirAdmin, async (req,res) => {
   res.json({ok:true,msg:'Avaliação de backtesting iniciada em background'});
-  avaliarBacktesting(supabase).catch(e=>console.error('Backtesting manual:',e.message));
+  avaliarBacktesting(supabase).then(null, e=>console.error('Backtesting manual:',e.message));
 });
 // Trigger backfill de dados históricos (admin)
 app.post('/admin/backfill', autenticar, exigirAdmin, async (req,res) => {
   const limite=parseInt(req.body.limite)||2000;
   res.json({ok:true,msg:`Backfill de ${limite} registros iniciado em background`});
-  backfillHistorico(supabase,limite).catch(e=>console.error('Backfill:',e.message));
+  backfillHistorico(supabase,limite).then(null, e=>console.error('Backfill:',e.message));
 });
 // Exportar features para ML (admin)
 app.get('/admin/ml/features/:cultura', autenticar, exigirAdmin, validarCultura, async (req,res) => {

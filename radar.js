@@ -91,7 +91,7 @@ async function gerarOportunidades(supabase, precos) {
   await supabase.from('oportunidades')
     .update({ ativa: false })
     .lt('validade', agora.toISOString())
-    // .catch(e => console.warn('Expirar oportunidades:', e.message)); // error handled silently
+    // .then(null, e => console.warn('Expirar oportunidades:', e.message)); // error handled silently
 
   // Inserir novas oportunidades
   if (oportunidades.length > 0) {

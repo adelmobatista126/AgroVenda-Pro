@@ -73,12 +73,12 @@ async function calibracao(supabase, cultura = 'todas') {
 async function dashboardValidacao(supabase, cultura = 'todas') {
   // Executar em paralelo
   const [resumo100, resumoGeral, porScore, mensal, calib, ultimosSinais] = await Promise.all([
-    resumoUltimosN(supabase, cultura, 100, '15d').catch(() => null),
+    resumoUltimosN(supabase, cultura, 100, '15d').then(null, () => null),
     supabase.from('validacao_resumo').select('*')
       .eq(cultura !== 'todas' ? 'cultura' : 'horizonte_dias', cultura !== 'todas' ? cultura : 15),
-    validacaoPorScore(supabase, cultura).catch(() => []),
-    validacaoMensal(supabase, cultura !== 'todas' ? cultura : null).catch(() => []),
-    calibracao(supabase, cultura).catch(() => []),
+    validacaoPorScore(supabase, cultura).then(null, () => []),
+    validacaoMensal(supabase, cultura !== 'todas' ? cultura : null).then(null, () => []),
+    calibracao(supabase, cultura).then(null, () => []),
     supabase.from('validacao_historico').select(
       'sinal_id,cultura,data_sinal,score,decisao_sugerida,preco_brl_momento,preco_em_15d,retorno_15d_pct,acerto_15d,resultado_principal,classificacao_resultado'
     ).eq(cultura !== 'todas' ? 'cultura' : 'resultado_principal', cultura !== 'todas' ? cultura : 'acerto')

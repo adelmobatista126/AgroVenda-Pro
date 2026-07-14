@@ -185,7 +185,7 @@ async function processarMensagem(supabase, webhook) {
         pergunta: texto.substring(0, 500),
         resposta: resposta.substring(0, 2000),
         dados_utilizados: { intencao, dolar: precos.dolar }
-      }).catch(() => {});
+      }).then(null, () => {});
     }
   } catch (e) {
     console.error('processarMensagem WhatsApp:', e.message);

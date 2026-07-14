@@ -206,7 +206,7 @@ async function assistenteSuporteIA(supabase, perfil_id, pergunta, anthropicKey) 
       const ids = artigos.map(a => a.id).filter(Boolean);
       // Sem RPC de incremento: fazer update simples
       await Promise.all(
-        artigos.filter(a=>a.id).map(a => supabase.from('help_articles').update({ visualizacoes: (a.visualizacoes||0)+1 }).eq('id',a.id).catch(()=>{}))
+        artigos.filter(a=>a.id).map(a => supabase.from('help_articles').update({ visualizacoes: (a.visualizacoes||0)+1 }).eq('id',a.id).then(null, ()=>{}))
       );
     }
 
@@ -283,7 +283,7 @@ async function buscarArtigo(supabase, slug) {
     // Incrementar visualizações (fire and forget)
     supabase.from('help_articles')
       .update({ visualizacoes: (data.visualizacoes || 0) + 1 })
-      .eq('id', data.id).catch(() => {});
+      .eq('id', data.id).then(null, () => {});
   }
   return data;
 }

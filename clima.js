@@ -119,7 +119,7 @@ async function salvarPrevisaoClima(supabase, estado) {
 
   if (registros.length > 0) {
     await (async()=>{try{return await supabase.from('clima_previsao').upsert(registros,
-      { onConflict: 'regiao,data_previsao,cultura' });}catch(e){console.warn('Clima upsert:', e.message)}})().catch(()=>{});
+      { onConflict: 'regiao,data_previsao,cultura' });}catch(e){console.warn('Clima upsert:', e.message)}})().then(null, ()=>{});
   }
 
   return { ...dados, culturas, registros: registros.length };

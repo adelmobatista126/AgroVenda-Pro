@@ -411,12 +411,12 @@ async function analisarCultura(supabase, perfil, ppData, cultura, anthropicKey) 
   log('5/5', `✅ enviado via: ${canais.join(', ') || 'nenhum canal configurado'}`);
 
   // Salvar sinal e estratégia no banco
-  await gerarESalvarSinal(supabase, cultura, indicadores.score, indicadores.probabilidades, indicadores.estrategia).catch(() => {});
+  await gerarESalvarSinal(supabase, cultura, indicadores.score, indicadores.probabilidades, indicadores.estrategia).then(null, () => {});
   // Registrar evento de aprendizado
   await registrarAprendizado(supabase, perfil.id, 'analise_gerada', {
     cultura, score: indicadores.score.score, mts: indicadores.estrategia.market_timing?.score,
     acao: analise.acao_sugerida
-  }, null).catch(() => {});
+  }, null).then(null, () => {});
 
   await supabase.from('estrategias_venda').insert({
     perfil_id:         perfil.id,
@@ -429,7 +429,7 @@ async function analisarCultura(supabase, perfil, ppData, cultura, anthropicKey) 
     market_timing_score: indicadores.estrategia.market_timing?.score,
     confianca:         indicadores.estrategia.confianca,
     validade:          new Date(Date.now() + 24*3600*1000).toISOString(),
-  }).catch(() => {});
+  }).then(null, () => {});
 
   return {
     cultura,
@@ -538,7 +538,7 @@ async function gerarBriefingProdutor(supabase, perfil, _precos, anthropicKey) {
     conteudo:           resultados.map(r => `${NOMES[r.cultura]}: ${r.analise.acao_sugerida}`).join(' | '),
     decisoes_sugeridas: decisoesSugeridas,
     canal_enviado:      [...new Set(resultados.flatMap(r => r.canais_enviados))],
-  }).catch(() => {});
+  }).then(null, () => {});
 
   console.log(`  ✅ Briefing concluído: ${resultados.length}/${culturas.length} culturas | ${totalTokens} tokens`);
 

@@ -141,7 +141,7 @@ async function buscarTodosPrecos(supabase) {
     const rows = Object.entries(precos)
       .filter(([,v]) => v.brl)
       .map(([cultura, v]) => ({ cultura, preco_brl: v.brl, dolar, fonte: v.fonte }));
-    if (rows.length) await supabase.from('historico_precos').insert(rows).catch(()=>{});
+    if (rows.length) await supabase.from('historico_precos').insert(rows).then(null, ()=>{});
   }
 
   // FIX 10: calcular média do dólar dos últimos 30 dias (score de câmbio funcional)

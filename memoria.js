@@ -200,7 +200,7 @@ async function atualizarMemoria(supabase, perfil_id) {
 async function registrarAprendizado(supabase, perfil_id, tipo, conteudo, impacto = null) {
   await (async()=>{try{return await supabase.from('eventos_aprendizado').insert({
     perfil_id, tipo, conteudo, impacto
-  });}catch(e){console.warn('registrarAprendizado:', e.message)}})().catch(()=>{});
+  });}catch(e){console.warn('registrarAprendizado:', e.message)}})().then(null, ()=>{});
 }
 
 // ── Salvar/atualizar meta de safra ───────────────────────────
